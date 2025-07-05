@@ -1,0 +1,218 @@
+{% load party_extras %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vote - UPolls</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+      body { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+      @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+      .animate-fadeIn { animation: fadeIn 0.2s ease; }
+      .party-card.selected {
+        border: 2px solid #14b8a6 !important;
+        box-shadow: 0 0 0 4px #99f6e4;
+        background: #f0fdfa;
+        transition: border 0.2s, box-shadow 0.2s, background 0.2s;
+      }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" id="main-body">
+    <div class="max-w-3xl mx-auto py-10 px-4">
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 flex flex-col items-center">
+            <h2 class="text-3xl font-bold text-teal-600 mb-2">Cast Your Vote</h2>
+            <div class="text-lg text-gray-700 mb-2">{{ active_election.name }}</div>
+            <p class="text-gray-500 mb-6">Please select your preferred party to vote for:</p>
+        </div>
+        {% if messages %}
+          <div class="mb-6">
+            {% for message in messages %}
+              <div class="p-4 rounded-lg {% if message.tags == 'error' %}bg-red-100 text-red-700 border border-red-300{% else %}bg-green-100 text-green-700 border border-green-300{% endif %}">
+                  {{ message }}
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            <!-- Toasts will be handled globally -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {% for party in parties %}
+                <label class="party-card block bg-white rounded-xl shadow p-6 flex flex-col items-center border-t-4 cursor-pointer transition hover:shadow-lg" style="border-top-color: {{ party.color }};">
+                    <input type="radio" name="party" value="{{ party.id }}" class="sr-only party-radio" required>
+                    {% if party.logo %}
+                        <img src="{{ party.logo.url }}" alt="{{ party.name }}" class="w-16 h-16 rounded-full object-cover mb-3 border-2 border-teal-100">
+                    {% else %}
+                        <div class="w-16 h-16 rounded-full flex items-center justify-center bg-teal-100 text-teal-700 font-bold text-xl mb-3">{{ party.name|first }}</div>
+                    {% endif %}
+                    <h3 class="text-lg font-bold text-gray-900 mb-1">{{ party.name }}</h3>
+                    <p class="text-gray-600 text-sm mb-2 text-center">{{ party.description|truncatewords:12 }}</p>
+                    {% with president=party_presidents|dict_get:party.id %}
+                        {% if president %}
+                        <div class="w-full bg-gray-50 rounded p-2 mb-2 flex items-center gap-2">
+                            {% if president.photo %}
+                                <img src="{{ president.photo.url }}" alt="{{ president.name }}" class="w-8 h-8 rounded-full object-cover">
+                            {% endif %}
+                            <span class="font-medium text-gray-700">President:</span>
+                            <span class="text-gray-900">{{ president.name }}</span>
+                        </div>
+                        {% endif %}
+                    {% endwith %}
+                </label>
+                {% endfor %}
+            </div>
+            <!-- Hidden fields for cryptographic data -->
+            <input type="hidden" id="public_key" name="public_key">
+            <input type="hidden" id="signature" name="signature">
+            <input type="hidden" id="timestamp" name="timestamp">
+            <button type="submit" class="w-full py-3 rounded-lg bg-teal-600 text-white font-semibold text-lg shadow hover:bg-teal-700 transition vote-btn">Submit Vote</button>
+        </form>
+        <div class="flex flex-wrap gap-4 justify-center mt-8">
+            <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-lg bg-white border border-teal-600 text-teal-600 font-semibold shadow hover:bg-teal-50 transition">Back to Dashboard</a>
+            <a href="{% url 'discover_parties' %}" class="px-6 py-3 rounded-lg bg-white border border-teal-600 text-teal-600 font-semibold shadow hover:bg-teal-50 transition">Discover Parties</a>
+            <a href="{% url 'logout' %}" class="px-6 py-3 rounded-lg bg-white border border-gray-400 text-gray-700 font-semibold shadow hover:bg-gray-100 transition">Logout</a>
+        </div>
+    </div>
+    <!-- Modal Component -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+      <div class="bg-white rounded-xl shadow-lg p-8 max-w-md w-full relative animate-fadeIn">
+        <h3 id="modal-title" class="text-xl font-bold mb-4 text-teal-700">Confirm Your Vote</h3>
+        <p id="modal-content" class="mb-6 text-gray-700">Are you sure you want to submit your vote? This action cannot be undone.</p>
+        <div class="flex justify-end gap-3">
+          <button id="modal-cancel" class="px-4 py-2 rounded bg-gray-200 text-gray-700 font-semibold hover:bg-gray-300 transition">Cancel</button>
+          <button id="modal-confirm" class="px-4 py-2 rounded bg-teal-600 text-white font-semibold hover:bg-teal-700 transition">Yes, Submit</button>
+        </div>
+        <button id="modal-close" class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-2xl leading-none">&times;</button>
+      </div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl-util@0.15.1/nacl-util.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tweetnacl@1.0.3/nacl.min.js"></script>
+    <script>
+      let keyPair = null;
+      let privateKeyBase64 = '';
+      let publicKeyBase64 = '';
+      function generateKeyPair() {
+        keyPair = nacl.sign.keyPair();
+        privateKeyBase64 = nacl.util.encodeBase64(keyPair.secretKey);
+        publicKeyBase64 = nacl.util.encodeBase64(keyPair.publicKey);
+      }
+      function signVoteData(voteData) {
+        const voteDataUint8 = nacl.util.decodeUTF8(voteData);
+        const signature = nacl.sign.detached(voteDataUint8, keyPair.secretKey);
+        return nacl.util.encodeBase64(signature);
+      }
+      document.addEventListener('DOMContentLoaded', function() {
+        generateKeyPair();
+        {% if messages %}
+          {% for message in messages %}
+            showToast(`{{ message|escapejs }}`, '{{ message.tags }}');
+          {% endfor %}
+        {% endif %}
+        const voteForm = document.querySelector('form');
+        voteForm.addEventListener('submit', function(e) {
+          // Build the vote data string (must match backend logic)
+          const partyRadio = document.querySelector('input[name="party"]:checked');
+          if (!partyRadio) return; // No party selected
+          const partyId = partyRadio.value;
+          const electionId = '{{ active_election.id }}';
+          const timestamp = new Date().toISOString();
+          const voteData = `${electionId}:${partyId}:${timestamp}`;
+          // Sign the vote data
+          const signature = signVoteData(voteData);
+          // Set hidden fields
+          document.getElementById('public_key').value = publicKeyBase64;
+          document.getElementById('signature').value = signature;
+          document.getElementById('timestamp').value = timestamp;
+          // Save all data to localStorage for receipt page
+          localStorage.setItem('upolls_public_key', publicKeyBase64);
+          localStorage.setItem('upolls_private_key', privateKeyBase64);
+          localStorage.setItem('upolls_signature', signature);
+          localStorage.setItem('upolls_timestamp', timestamp);
+          localStorage.setItem('upolls_vote_data', voteData);
+          // Prompt user to download/save their private key
+          setTimeout(() => {
+            const blob = new Blob([privateKeyBase64], {type: 'text/plain'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'upolls_private_key.txt';
+            a.textContent = 'Download your private key';
+            a.className = 'block mt-4 px-4 py-2 bg-teal-100 text-teal-700 rounded shadow font-semibold';
+            document.body.appendChild(a);
+            setTimeout(() => { a.click(); document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+            alert('IMPORTANT: Your private key has been generated and will be downloaded. Save it securely! You will need it to verify your vote.');
+          }, 500);
+        });
+      });
+      function showToast(msg, type) {
+        const colors = {
+          'success': 'bg-green-100 text-green-800',
+          'error': 'bg-red-100 text-red-800',
+          'warning': 'bg-yellow-100 text-yellow-800',
+          'info': 'bg-blue-100 text-blue-800',
+          'debug': 'bg-gray-100 text-gray-800',
+          '': 'bg-gray-100 text-gray-800'
+        };
+        const color = colors[type] || colors['info'];
+        const toast = document.createElement('div');
+        toast.className = `toast px-6 py-3 rounded shadow-lg font-semibold transition transform duration-300 opacity-0 ${color}`;
+        toast.innerText = msg;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => { toast.classList.add('opacity-100', 'translate-y-0'); }, 100);
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0');
+          setTimeout(() => toast.remove(), 500);
+        }, 3500);
+      }
+      // Modal logic
+      const voteForm = document.querySelector('form');
+      const modalOverlay = document.getElementById('modal-overlay');
+      const modalCancel = document.getElementById('modal-cancel');
+      const modalConfirm = document.getElementById('modal-confirm');
+      const modalClose = document.getElementById('modal-close');
+      let formSubmitPending = false;
+      voteForm.addEventListener('submit', function(e) {
+        if (!formSubmitPending) {
+          e.preventDefault();
+          modalOverlay.classList.remove('hidden');
+          modalOverlay.focus();
+        }
+      });
+      modalCancel.addEventListener('click', function() {
+        modalOverlay.classList.add('hidden');
+      });
+      modalClose.addEventListener('click', function() {
+        modalOverlay.classList.add('hidden');
+      });
+      modalConfirm.addEventListener('click', function() {
+        formSubmitPending = true;
+        modalOverlay.classList.add('hidden');
+        voteForm.submit();
+      });
+      // Close modal on ESC or click outside
+      modalOverlay.addEventListener('click', function(e) {
+        if (e.target === modalOverlay) modalOverlay.classList.add('hidden');
+      });
+      document.addEventListener('keydown', function(e) {
+        if (!modalOverlay.classList.contains('hidden') && e.key === 'Escape') {
+          modalOverlay.classList.add('hidden');
+        }
+      });
+      // Party card selection highlight
+      const partyRadios = document.querySelectorAll('.party-radio');
+      const partyCards = document.querySelectorAll('.party-card');
+      partyRadios.forEach((radio, idx) => {
+        radio.addEventListener('change', function() {
+          partyCards.forEach(card => card.classList.remove('selected'));
+          if (radio.checked) {
+            partyCards[idx].classList.add('selected');
+          }
+        });
+      });
+    </script>
+</body>
+</html> 

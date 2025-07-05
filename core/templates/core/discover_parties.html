@@ -1,0 +1,113 @@
+{% load party_extras %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Discover Parties - UPolls</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+      body { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen" id="main-body">
+    <div class="max-w-5xl mx-auto py-10 px-4">
+        <div class="bg-white rounded-2xl shadow-lg p-8 mb-8 flex flex-col items-center">
+            <h2 class="text-3xl font-bold text-teal-600 mb-2">Discover Political Parties</h2>
+            <div class="text-lg text-gray-700 mb-2">{{ election.name }}</div>
+        </div>
+        <!-- Live Search Bar -->
+        <div class="mb-8 flex justify-center">
+            <input id="party-search" type="text" placeholder="Search parties by name, description, or president..." class="w-full max-w-lg px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-teal-400 text-lg shadow transition" />
+        </div>
+        <div id="party-cards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 mb-8">
+            {% for party in parties %}
+            <div class="party-card bg-white rounded-xl shadow p-6 flex flex-col items-center border-t-4 transition-all duration-300" style="border-top-color: {{ party.color }};" data-name="{{ party.name|lower }}" data-description="{{ party.description|default:''|lower }}" data-president="{% with president=party_presidents|dict_get:party.id %}{% if president %}{{ president.name|lower }}{% endif %}{% endwith %}">
+                {% if party.logo %}
+                    <img src="{{ party.logo.url }}" alt="{{ party.name }}" class="w-16 h-16 rounded-full object-cover mb-3 border-2 border-teal-100">
+                {% else %}
+                    <div class="w-16 h-16 rounded-full flex items-center justify-center bg-teal-100 text-teal-700 font-bold text-xl mb-3">{{ party.name|first }}</div>
+                {% endif %}
+                <h4 class="text-lg font-bold text-gray-900 mb-1">{{ party.name }}</h4>
+                <p class="text-gray-600 text-sm mb-2 text-center">{{ party.description|truncatewords:12 }}</p>
+                {% with president=party_presidents|dict_get:party.id %}
+                    {% if president %}
+                    <div class="w-full bg-gray-50 rounded p-2 mb-2 flex items-center gap-2">
+                        {% if president.photo %}
+                            <img src="{{ president.photo.url }}" alt="{{ president.name }}" class="w-8 h-8 rounded-full object-cover">
+                        {% endif %}
+                        <span class="font-medium text-gray-700">President:</span>
+                        <span class="text-gray-900">{{ president.name }}</span>
+                    </div>
+                    {% endif %}
+                {% endwith %}
+                <div class="flex flex-col gap-2 w-full mt-4">
+                    <a href="{% url 'party_detail' party.id %}" class="w-full py-2 rounded bg-teal-600 text-white text-center font-semibold hover:bg-teal-700 transition">Discover More</a>
+                    {% if not user.has_voted %}
+                        <a href="{% url 'vote' %}" class="w-full py-2 rounded bg-white border border-teal-600 text-teal-600 text-center font-semibold hover:bg-teal-50 transition">Vote for this Party</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="flex flex-wrap gap-4 justify-center mt-8">
+            <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-lg bg-white border border-teal-600 text-teal-600 font-semibold shadow hover:bg-teal-50 transition">Dashboard</a>
+            <a href="{% url 'logout' %}" class="px-6 py-3 rounded-lg bg-white border border-gray-400 text-gray-700 font-semibold shadow hover:bg-gray-100 transition">Logout</a>
+        </div>
+    </div>
+    <!-- Toast Container -->
+    <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-3"></div>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        {% if messages %}
+          {% for message in messages %}
+            showToast(`{{ message|escapejs }}`, '{{ message.tags }}');
+          {% endfor %}
+        {% endif %}
+      });
+      function showToast(msg, type) {
+        const colors = {
+          'success': 'bg-green-100 text-green-800',
+          'error': 'bg-red-100 text-red-800',
+          'warning': 'bg-yellow-100 text-yellow-800',
+          'info': 'bg-blue-100 text-blue-800',
+          'debug': 'bg-gray-100 text-gray-800',
+          '': 'bg-gray-100 text-gray-800'
+        };
+        const color = colors[type] || colors['info'];
+        const toast = document.createElement('div');
+        toast.className = `toast px-6 py-3 rounded shadow-lg font-semibold transition transform duration-300 opacity-0 ${color}`;
+        toast.innerText = msg;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => { toast.classList.add('opacity-100', 'translate-y-0'); }, 100);
+        setTimeout(() => {
+          toast.classList.remove('opacity-100');
+          toast.classList.add('opacity-0');
+          setTimeout(() => toast.remove(), 500);
+        }, 3500);
+      }
+      // Live search/filtering for parties
+      const searchInput = document.getElementById('party-search');
+      const partyCards = document.querySelectorAll('.party-card');
+      searchInput.addEventListener('input', function() {
+        const query = this.value.trim().toLowerCase();
+        partyCards.forEach(card => {
+          const name = card.dataset.name;
+          const description = card.dataset.description;
+          const president = card.dataset.president;
+          if (
+            name.includes(query) ||
+            description.includes(query) ||
+            president.includes(query)
+          ) {
+            card.classList.remove('opacity-30', 'scale-95', 'pointer-events-none', 'hidden');
+            card.classList.add('opacity-100', 'scale-100');
+          } else {
+            card.classList.add('opacity-30', 'scale-95', 'pointer-events-none', 'hidden');
+            card.classList.remove('opacity-100', 'scale-100');
+          }
+        });
+      });
+    </script>
+</body>
+</html> 

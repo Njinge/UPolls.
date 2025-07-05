@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}UPolls{% endblock %}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      html { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+      body { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <nav class="bg-white shadow-md py-4 px-8 flex justify-between items-center">
+        <div class="flex items-center gap-6">
+            <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'home' %}{% endif %}" class="text-2xl font-bold text-teal-600 hover:text-teal-800 transition flex items-center">
+                UPolls
+            </a>
+            <span class="h-8 border-l border-gray-300 mx-4"></span>
+            <a href="{% url 'election_info' %}" class="text-gray-700 hover:text-teal-600 font-medium transition px-2" id="election-info-btn">Election Information</a>
+            <div class="relative group">
+                <button class="text-gray-700 hover:text-teal-600 font-medium transition px-2 flex items-center" id="voter-assist-btn">Voter Assistance
+                    <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+                <div class="absolute left-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 hidden group-hover:block" id="voter-assist-dropdown">
+                    <h3 class="font-bold text-teal-600 mb-2">Voter Assistance</h3>
+                    <ul class="list-disc pl-5 text-gray-700 text-sm space-y-1">
+                        <li>Register with your official university email and matricule.</li>
+                        <li>Check your email for a 2FA code after registering or logging in.</li>
+                        <li>To vote, review candidates and select your preferred party.</li>
+                        <li>You can only vote once per election.</li>
+                        <li>Results are available after you vote or when the election ends.</li>
+                        <li>Contact support@upolls.com for help.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="flex gap-4">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="px-4 py-2 rounded bg-gray-100 text-gray-700 hover:bg-gray-200 transition">Logout</a>
+            {% else %}
+                <a href="{% url 'login' %}" class="px-4 py-2 rounded bg-teal-600 text-white hover:bg-teal-700 transition">Login</a>
+                <a href="{% url 'register' %}" class="px-4 py-2 rounded bg-white border border-teal-600 text-teal-600 hover:bg-teal-50 transition">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    {% block footer %}
+    <footer class="bg-gray-100 border-t border-gray-200 mt-12">
+      <div class="max-w-7xl mx-auto px-6 py-10">
+        <div class="flex flex-wrap justify-between gap-8">
+          <!-- About Us -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">About Us</h3>
+            <ul class="space-y-1 text-gray-700 text-sm">
+              <li><a href="{% url 'about_us' %}" class="hover:text-teal-600">Who We Are</a></li>
+              <li><a href="{% url 'about_us' %}#vision" class="hover:text-teal-600">Vision & Mission</a></li>
+              <li><a href="{% url 'about_us' %}#objectives" class="hover:text-teal-600">Objectives</a></li>
+            </ul>
+          </div>
+          <!-- Voting -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Voting</h3>
+            <ul class="space-y-1 text-gray-700 text-sm">
+              <li><a href="{% url 'register' %}" class="hover:text-teal-600">Register</a></li>
+              <li><a href="{% url 'login' %}" class="hover:text-teal-600">Login</a></li>
+              <li><a href="{% url 'dashboard' %}" class="hover:text-teal-600">Dashboard</a></li>
+              <li><a href="{% url 'results' %}" class="hover:text-teal-600">Results</a></li>
+            </ul>
+          </div>
+          <!-- Resources -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Resources</h3>
+            <ul class="space-y-1 text-gray-700 text-sm">
+              <li><a href="{% url 'faqs' %}" class="hover:text-teal-600">FAQs</a></li>
+              <li><a href="{% url 'help_center' %}" class="hover:text-teal-600">Help Center</a></li>
+              <li><a href="{% url 'guides' %}" class="hover:text-teal-600">Guides</a></li>
+            </ul>
+          </div>
+          <!-- Connect -->
+          <div>
+            <h3 class="text-lg font-bold text-gray-900 mb-2">Connect</h3>
+            <div class="flex space-x-4 mt-2">
+              <a href="#" aria-label="Facebook" class="text-gray-500 hover:text-teal-600"><i class="fab fa-facebook-f"></i></a>
+              <a href="#" aria-label="Twitter" class="text-gray-500 hover:text-teal-600"><i class="fab fa-twitter"></i></a>
+              <a href="#" aria-label="Instagram" class="text-gray-500 hover:text-teal-600"><i class="fab fa-instagram"></i></a>
+              <a href="#" aria-label="LinkedIn" class="text-gray-500 hover:text-teal-600"><i class="fab fa-linkedin-in"></i></a>
+            </div>
+            <!-- Logo placeholder: Add your logo here later -->
+          </div>
+        </div>
+        <div class="mt-8 border-t border-gray-200 pt-6 text-xs text-gray-500 flex flex-col md:flex-row justify-between items-center">
+          <div>
+            &copy; {{ now|date:'Y' }} UPolls. All rights reserved.
+          </div>
+          <div class="space-x-4 mt-2 md:mt-0">
+            <a href="{% url 'privacy_policy' %}" class="hover:text-teal-600">Privacy Policy</a>
+            <a href="{% url 'terms_of_use' %}" class="hover:text-teal-600">Terms of Use</a>
+            <a href="mailto:support@upolls.com" class="hover:text-teal-600">Contact Us</a>
+          </div>
+        </div>
+      </div>
+    </footer>
+    {% endblock %}
+    {% block extra_body %}{% endblock %}
+    <script>
+        // Show/hide voter assistance dropdown on hover/click
+        const assistBtn = document.getElementById('voter-assist-btn');
+        const assistDropdown = document.getElementById('voter-assist-dropdown');
+        if (assistBtn && assistDropdown) {
+            assistBtn.addEventListener('mouseenter', () => assistDropdown.classList.remove('hidden'));
+            assistBtn.addEventListener('mouseleave', () => assistDropdown.classList.add('hidden'));
+            assistDropdown.addEventListener('mouseenter', () => assistDropdown.classList.remove('hidden'));
+            assistDropdown.addEventListener('mouseleave', () => assistDropdown.classList.add('hidden'));
+        }
+    </script>
+</body>
+</html> 

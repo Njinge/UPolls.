@@ -1,0 +1,23 @@
+asgiref==3.8.1
+certifi==2025.6.15
+charset-normalizer==3.4.2
+distlib==0.3.9
+Django==5.2.3
+django-admin-interface==0.30.1
+django-colorfield @ git+https://github.com/fabiocaccamo/django-colorfield.git@87f5ec63a792f2cd887c3b6f4a224be0cd354419
+filelock==3.18.0
+idna==3.10
+numpy==1.26.4
+pillow==11.2.1
+platformdirs==4.3.8
+protobuf==4.25.8
+psycopg2-binary==2.9.10
+PyJWT==2.10.1
+python-slugify==8.0.4
+reportlab==4.4.2
+requests==2.32.4
+setuptools==80.9.0
+sqlparse==0.5.3
+text-unidecode==1.3
+urllib3==2.5.0
+virtualenv==20.31.2

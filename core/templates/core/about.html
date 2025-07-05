@@ -1,0 +1,27 @@
+{% extends 'core/base.html' %}
+{% block title %}About Us - UPolls{% endblock %}
+{% block content %}
+<div class="flex items-center justify-center min-h-[60vh]">
+    <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-10 flex flex-col items-center">
+        <h1 class="text-3xl font-bold text-teal-600 mb-4">About UPolls</h1>
+        <p class="text-lg text-gray-700 mb-6 text-center">
+            <strong>UPolls</strong> is a secure, modern, and user-friendly university election platform designed to empower students and administrators. Our mission is to ensure transparent, fair, and accessible elections for all.
+        </p>
+        <div class="w-full mb-6">
+            <h2 id="vision" class="text-2xl font-semibold text-gray-900 mb-2">Our Vision</h2>
+            <p class="text-gray-700 text-base mb-4">
+                To be the leading digital platform for university elections in Africa, fostering democratic values, transparency, and student engagement through technology.
+            </p>
+            <h2 id="objectives" class="text-2xl font-semibold text-gray-900 mb-2">Objectives</h2>
+            <ul class="list-disc pl-6 text-gray-700 text-base">
+                <li>Promote free, fair, and credible elections in universities.</li>
+                <li>Empower students to participate actively in campus democracy.</li>
+                <li>Provide a secure, accessible, and easy-to-use voting experience.</li>
+                <li>Leverage technology to increase transparency and trust in the electoral process.</li>
+                <li>Support administrators with powerful tools for managing elections and results.</li>
+            </ul>
+        </div>
+        <a href="{% url 'home' %}" class="mt-6 px-6 py-3 rounded-lg bg-teal-600 text-white font-semibold shadow hover:bg-teal-700 transition">Back to Home</a>
+    </div>
+</div>
+{% endblock %} 

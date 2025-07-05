@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Vote Receipt - UPolls</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+      html { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+      body { font-family: 'Montserrat', 'Century Gothic', Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center">
+    <div class="bg-white rounded-2xl shadow-lg p-8 max-w-md w-full flex flex-col items-center">
+        <h2 class="text-2xl font-bold text-teal-600 mb-4">Your Vote Receipt</h2>
+        <p class="text-gray-700 mb-2">Thank you for voting! Please save this receipt. You will need it to verify your vote later.</p>
+        <div class="bg-gray-100 rounded-lg px-6 py-4 text-lg font-mono text-teal-700 mb-4 select-all">{{ receipt }}</div>
+        <button id="download-receipt" class="mb-4 px-4 py-2 bg-teal-600 text-white rounded shadow font-semibold hover:bg-teal-700 transition">Download Full Receipt</button>
+        <div id="qrcode" class="mb-4"></div>
+        <a href="{% url 'dashboard' %}" class="px-6 py-3 rounded-lg bg-teal-600 text-white font-semibold shadow hover:bg-teal-700 transition">Back to Dashboard</a>
+    </div>
+    <script>
+    // These values should be passed from the backend or set via JS after voting
+    // For demo, use placeholders; in production, pass all data from the backend context
+    const receipt = '{{ receipt }}';
+    // The following should be set via JS after voting (see vote.html JS)
+    const publicKey = localStorage.getItem('upolls_public_key') || '';
+    const privateKey = localStorage.getItem('upolls_private_key') || '';
+    const timestamp = localStorage.getItem('upolls_timestamp') || '';
+    const signature = localStorage.getItem('upolls_signature') || '';
+    const voteData = localStorage.getItem('upolls_vote_data') || '';
+    // Downloadable receipt
+    document.getElementById('download-receipt').addEventListener('click', function() {
+        const receiptData = {
+            receipt,
+            public_key: publicKey,
+            private_key: privateKey,
+            timestamp,
+            signature,
+            vote_data: voteData
+        };
+        const blob = new Blob([JSON.stringify(receiptData, null, 2)], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'upolls_vote_receipt.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+    // QR code
+    const qrData = JSON.stringify({
+        receipt,
+        public_key: publicKey,
+        private_key: privateKey,
+        timestamp,
+        signature,
+        vote_data: voteData
+    });
+    QRCode.toCanvas(document.getElementById('qrcode'), qrData, { width: 220 }, function (error) {
+      if (error) console.error(error);
+    });
+    </script>
+</body>
+</html> 

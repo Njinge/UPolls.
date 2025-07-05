@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>No Elections - UPolls</title>
+    <style>
+        body { background: #f8f9fa; font-family: Arial, sans-serif; }
+        .container { max-width: 500px; margin: 40px auto; background: #fff; padding: 2em; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        h2 { color: #008080; text-align: center; }
+        .message { background: #e2e3e5; border: 1px solid #d6d8db; padding: 1em; border-radius: 4px; margin: 1em 0; }
+        .actions { text-align: center; margin-top: 2em; }
+        a.button { display: inline-block; margin: 0 1em; padding: 0.7em 2em; background: #008080; color: #fff; border-radius: 4px; text-decoration: none; }
+        a.button:hover { background: #005f5f; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>No Active Elections</h2>
+        <div class="message">
+            <p>There are currently no active elections available for voting. Please check back later.</p>
+        </div>
+        <div class="actions">
+            <a href="{% url 'dashboard' %}" class="button">Back to Dashboard</a>
+            <a href="{% url 'logout' %}" class="button">Logout</a>
+        </div>
+    </div>
+</body>
+</html> 

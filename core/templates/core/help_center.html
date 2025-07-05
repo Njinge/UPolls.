@@ -1,0 +1,25 @@
+{% extends 'core/base.html' %}
+{% block title %}Help Center - UPolls{% endblock %}
+{% block content %}
+<div class="max-w-2xl mx-auto py-10 px-4">
+    <h1 class="text-3xl font-bold text-teal-600 mb-6 text-center">Help Center</h1>
+    <div class="space-y-6">
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Having trouble logging in?</h2>
+            <p class="text-gray-700">Make sure you are using your correct username and password. If you have forgotten your password, use the password reset option or contact support.</p>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Didn't receive your 2FA code?</h2>
+            <p class="text-gray-700">Check your Gmail inbox and spam folder. If you still don't see the code, wait a few minutes and try again, or contact support@upolls.com.</p>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Issues with registration?</h2>
+            <p class="text-gray-700">Ensure your matricule is valid and not already used. Only official Gmail addresses are accepted for registration.</p>
+        </div>
+        <div>
+            <h2 class="text-xl font-semibold text-gray-900 mb-2">Other questions?</h2>
+            <p class="text-gray-700">Visit our <a href="{% url 'faqs' %}" class="text-teal-600 hover:underline">FAQs</a> or email <a href="mailto:support@upolls.com" class="text-teal-600 hover:underline">support@upolls.com</a> for further assistance.</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 
