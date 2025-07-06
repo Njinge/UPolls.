@@ -39,7 +39,7 @@ ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1").sp
 
 # Security middleware and settings
 SECURE_SSL_REDIRECT = False
-SECURE_HSTS_SECONDS = 31536000 if not DEBUG else 0
+SECURE_HSTS_SECONDS = 31536 if not DEBUG else 0
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_PRELOAD = True
 SECURE_BROWSER_XSS_FILTER = True
@@ -100,7 +100,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.environ.get('DB_NAME', 'upolls_db'),
         'USER': os.environ.get('DB_USER', 'upolls_user'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'ccmc'),
+        'PASSWORD': os.environ['DB_PASSWORD'],
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '5432'),
     }

@@ -18,6 +18,18 @@
         {% endif %}
         <form method="post" class="space-y-6">
             {% csrf_token %}
+            {% if form.non_field_errors %}
+              <div class="mb-4 text-red-600">
+                {{ form.non_field_errors }}
+              </div>
+            {% endif %}
+            {% for field in form %}
+              {% if field.errors %}
+                <div class="mb-2 text-red-600">
+                  {{ field.label }}: {{ field.errors|striptags }}
+                </div>
+              {% endif %}
+            {% endfor %}
             <div>
                 <label for="name" class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
                 <input type="text" name="name" id="name" required

@@ -265,7 +265,6 @@ def party_detail(request, party_id):
         messages.error(request, 'No active election found.')
         return redirect('dashboard')
     party = get_object_or_404(PoliticalParty, id=party_id)
-    # Group all candidates by position
     candidates = Candidate.objects.filter(election=active_election, party=party)
     candidates_by_position = {}
     for candidate in candidates:
@@ -275,6 +274,7 @@ def party_detail(request, party_id):
         candidates_by_position[pos].append(candidate)
     return render(request, 'core/party_detail.html', {
         'party': party,
+        'candidates': candidates,
         'candidates_by_position': candidates_by_position,
         'election': active_election
     })
